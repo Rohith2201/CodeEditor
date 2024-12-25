@@ -1,0 +1,72 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(STUDENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  submissions   Submission[]
+}
+
+model Subject {
+  id            String    @id @default(cuid())
+  name          String
+  assignments   Assignment[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Assignment {
+  id            String    @id @default(cuid())
+  title         String
+  description   String
+  subjectId     String
+  subject       Subject   @relation(fields: [subjectId], references: [id])
+  startTime     DateTime
+  duration      Int  // Duration in minutes
+  languages     String[]
+  testCases     TestCase[]
+  submissions   Submission[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model TestCase {
+  id            String    @id @default(cuid())
+  input         String
+  expectedOutput String
+  isHidden      Boolean   @default(false)
+  assignmentId  String
+  assignment    Assignment @relation(fields: [assignmentId], references: [id])
+}
+
+model Submission {
+  id            String    @id @default(cuid())
+  code          String
+  language      String
+  result        Json
+  grade         Float?
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  assignmentId  String
+  assignment    Assignment @relation(fields: [assignmentId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
+}
+
